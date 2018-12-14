@@ -76,7 +76,7 @@ class Qt(Package):
     # recent versions of gcc.
     # https://github.com/spack/spack/issues/9205
     # https://github.com/spack/spack/issues/9209
-    patch('qt4-gcc-and-webkit.patch', when='@4')
+    # patch('qt4-gcc-and-webkit.patch', when='@4')
 
     # Use system openssl for security.
     depends_on("openssl")
@@ -115,8 +115,8 @@ class Qt(Package):
 
     # OpenGL hardware acceleration
     depends_on("gl@3.2:", when='@4:+opengl')
-    depends_on("libxcb", when=sys.platform != 'darwin')
-    depends_on("libx11", when=sys.platform != 'darwin')
+    # depends_on("libxcb", when=sys.platform != 'darwin')
+    # depends_on("libx11", when=sys.platform != 'darwin')
 
     if sys.platform != 'darwin':
         depends_on("libxext", when='@3:4.99')
@@ -352,7 +352,9 @@ class Qt(Package):
 
         if not sys.platform == 'darwin':
             config_args.extend([
-                '-qt-xcb',
+                '-system-xcb',
+                '-xcb',
+                '-xcb-xlib',
             ])
 
         if '~webkit' in self.spec:

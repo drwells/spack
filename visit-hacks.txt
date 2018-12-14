@@ -1,0 +1,13 @@
+1. create a symbolic link libhdf5_mpi.so to libhdf5.so
+2. vtk should be compiled with -DBUILD_ALL_MODULES=ON
+3. visit depends on vtk + qt:
+    depends_on('vtk@6.1.0~opengl2~mpi+qt')
+4. compile VTK with BUILD_ALL_MODULES=ON (this may not be necessary)
+5. visit depends on the newest QT instead of an old one
+6. visit depends on hdf5+mpi when +hdf5 and +mpi are given
+7. add flags -DVISIT_QT5=ON, -DVISIT_QT_DIR=/qt/prefix to VISIT
+8. set the correct QMAKE exe: qmake-qt5
+
+I also exported the link line as an even crazier hack:
+[drwells@auricle spack]$ export CXXFLAGS=-l:libxcb-shm.so.0.0.0 ; export CFLAGS=-l:libxcb-shm.so.0.0.0 ; ./bin/spack
+ install visit@2.13.0 %gcc@5.4.0 ^qt@5.11.2 %gcc@5.4.0  ^opengl@4.5.0 %gcc@5.4.0 ^python@2.7.12 %gcc@5.4.0

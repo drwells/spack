@@ -26,12 +26,13 @@ class Visit(CMakePackage):
     variant('mpi',    default=True, description='Enable parallel engine')
 
     depends_on('cmake@3.0:', type='build')
-    depends_on('vtk@6.1.0~opengl2~mpi')
-    depends_on('qt@4.8.6', when='+gui')
+    depends_on('vtk@6.1.0~opengl2~mpi+qt')
+    depends_on('qt', when='+gui')
     depends_on('qwt', when='+gui')
     depends_on('python', when='+python')
     depends_on('silo+shared', when='+silo')
     depends_on('hdf5', when='+hdf5')
+    depends_on('hdf5+mpi', when='+hdf5+mpi')
     depends_on('mpi', when='+mpi')
 
     conflicts('+hdf5', when='~gui')
@@ -43,12 +44,14 @@ class Visit(CMakePackage):
         spec = self.spec
 
         args = [
+            '-DVISIT_QT5=ON',
+            '-DVISIT_QT_DIR={0}'.format(spec['qt'].prefix),
             '-DVTK_MAJOR_VERSION={0}'.format(spec['vtk'].version[0]),
             '-DVTK_MINOR_VERSION={0}'.format(spec['vtk'].version[1]),
             '-DVISIT_VTK_DIR:PATH={0}'.format(spec['vtk'].prefix),
             '-DVISIT_USE_GLEW=OFF',
-            '-DCMAKE_CXX_FLAGS=-fPIC',
-            '-DCMAKE_C_FLAGS=-fPIC'
+            '-DCMAKE_CXX_FLAGS=-l:libxcb-shm.so.0.0.0',
+            '-DCMAKE_C_FLAGS=-l:libxcb-shm.so.0.0.0'
         ]
 
         if(spec.variants['python'].value):
@@ -57,7 +60,7 @@ class Visit(CMakePackage):
         if(spec.variants['gui'].value):
             qt_bin = spec['qt'].prefix.bin
             args.append(
-                '-DVISIT_LOC_QMAKE_EXE:FILEPATH={0}/qmake-qt4'.format(qt_bin))
+                '-DVISIT_LOC_QMAKE_EXE:FILEPATH={0}/qmake-qt5'.format(qt_bin))
             args.append('-DVISIT_QWT_DIR:PATH={0}'.format(spec['qwt'].prefix))
         else:
             args.append('-DVISIT_SERVER_COMPONENTS_ONLY=ON')

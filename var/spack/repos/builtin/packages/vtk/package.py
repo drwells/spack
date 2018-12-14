@@ -37,6 +37,9 @@ class Vtk(CMakePackage):
     # See https://bugzilla.redhat.com/show_bug.cgi?id=1460059#c13
     variant('haru', default=True, description='Enable libharu')
 
+    # variant('netcdf', default=True, description='Enable NETCDF C interface')
+    # variant('netcdf-cxx', default=True, description='Enable NETCDF C++ interface')
+
     patch('gcc.patch', when='@6.1.0')
 
     # At the moment, we cannot build with both osmesa and qt, but as of
@@ -48,7 +51,7 @@ class Vtk(CMakePackage):
     extends('python', when='+python')
     # python3.7 compatibility patch backported from upstream
     # https://gitlab.kitware.com/vtk/vtk/commit/706f1b397df09a27ab8981ab9464547028d0c322
-    patch('python3.7-const-char.patch', when='@:8.1.1 ^python@3.7:')
+    # patch('python3.7-const-char.patch', when='@:8.1.1 ^python@3.7:')
 
     # The use of the OpenGL2 backend requires at least OpenGL Core Profile
     # version 3.2 or higher.
@@ -84,6 +87,7 @@ class Vtk(CMakePackage):
     depends_on('jsoncpp')
     depends_on('libxml2')
     depends_on('lz4')
+    # TODO remove the next two lines
     depends_on('netcdf')
     depends_on('netcdf-cxx')
     depends_on('libpng')
@@ -106,6 +110,7 @@ class Vtk(CMakePackage):
 
         cmake_args = [
             '-DBUILD_SHARED_LIBS=ON',
+            '-DBUILD_ALL_MODULES=ON',
             '-DVTK_RENDERING_BACKEND:STRING={0}'.format(opengl_ver),
 
             '-DVTK_USE_SYSTEM_LIBHARU=%s' % (
@@ -123,6 +128,10 @@ class Vtk(CMakePackage):
             '-DNETCDF_DIR={0}'.format(spec['netcdf'].prefix),
             '-DNETCDF_C_ROOT={0}'.format(spec['netcdf'].prefix),
             '-DNETCDF_CXX_ROOT={0}'.format(spec['netcdf-cxx'].prefix),
+
+            # # Enable/Disable wrappers for Python.
+            # '-DVTK_WRAP_PYTHON={0}'.format(
+            #     'ON' if '+python' in spec else 'OFF'),
 
             # Disable wrappers for other languages.
             '-DVTK_WRAP_JAVA=OFF',
@@ -147,6 +156,15 @@ class Vtk(CMakePackage):
             ])
         else:
             cmake_args.append('-DVTK_WRAP_PYTHON=OFF')
+
+        # if '+netcdf' in spec:
+        #     cmake_args.append(
+        #     '-DNETCDF_DIR={0}'.format(spec['netcdf'].prefix),
+        #     '-DNETCDF_C_ROOT={0}'.format(spec['netcdf'].prefix))
+
+        # if '+netcdf-cxx' in spec:
+        #     cmake_args.append(
+        #     '-DNETCDF_CXX_ROOT={0}'.format(spec['netcdf-cxx'].prefix))
 
         if 'darwin' in spec.architecture:
             cmake_args.extend([
@@ -240,6 +258,7 @@ class Vtk(CMakePackage):
             # NETCDF_CXX_ROOT to detect NetCDF C++ bindings, so
             # NETCDF_CXX_INCLUDE_DIR and NETCDF_CXX_LIBRARY must be
             # used instead to detect these bindings
+            # TODO guard with "if '+netcdf-cxx' in spec:"
             netcdf_cxx_lib = spec['netcdf-cxx'].libs.joined()
             cmake_args.extend([
                 '-DNETCDF_CXX_INCLUDE_DIR={0}'.format(
@@ -255,6 +274,7 @@ class Vtk(CMakePackage):
             # string. This fix was recommended on the VTK mailing list
             # in March 2014 (see
             # https://public.kitware.com/pipermail/vtkusers/2014-March/083368.html)
+
             if (self.spec.satisfies('%clang') and
                 self.compiler.is_apple and
                 self.compiler.version >= Version('5.1.0')):

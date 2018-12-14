@@ -93,6 +93,10 @@ class Mesa(AutotoolsPackage):
         args = ['--enable-glx', '--enable-glx-tls']
         drivers = []
 
+        # zlib
+        args.append('ZLIB_CFLAGS=-I{}'.format(self.spec['zlib'].prefix.include))
+        args.append('ZLIB_LIBS=-L{}'.format(self.spec['zlib'].prefix.lib))
+
         if '+swrender' in spec:
             drivers = ['swrast']
             args.extend([
